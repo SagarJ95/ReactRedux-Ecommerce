@@ -3,6 +3,7 @@ import { useSelector, useDispatch } from "react-redux"
 import { productInfo } from '../../../feature/shopCart/ProductSlice'
 import { categoryInfo } from '../../../feature/category/categorySlice'
 import { addItem } from '../../../feature/cartList/cartSlice'
+import { updateItem } from '../../../feature/cartList/cartSlice'
 
 const ProductList = () => {
     const dispatch = useDispatch()
@@ -12,20 +13,31 @@ const ProductList = () => {
 
     useEffect(() => {
         if (status === 'idle') {
-            dispatch(productInfo());
+            dispatch(productInfo({ categoryId: null, page: 0, sort_by_price: '' }));
             dispatch(categoryInfo());
         }
     }, [dispatch, status]);
 
-    const limitedItems = items.slice(0, 8);
+    const limitedItems = items?.data?.length > 0 ? items.data.slice(0, 8) : [];
 
     const handleCategoryClick = (categoryId) => {
         setSelectedCategory(categoryId);
-        dispatch(productInfo(categoryId));
+
+        dispatch(productInfo({ categoryId: categoryId, page: 0, sort_by_price: '' }));
     };
 
     const handleCartData = (productId) => {
         dispatch(addItem(productId));
+    }
+
+    const minusQty = (product_id, qty, cart_id) => {
+        const updateQty = parseInt(qty) - 1;
+        dispatch(updateItem({ productId: product_id, updateQty, cartId: cart_id }))
+    }
+
+    const plusQty = (product_id, qty, cart_id) => {
+        const updateQty = parseInt(qty) + 1;
+        dispatch(updateItem({ productId: product_id, updateQty, cartId: cart_id }))
     }
 
 
@@ -90,7 +102,26 @@ const ProductList = () => {
                                                                 <h4>{product.product_name}</h4>
                                                                 <div className="d-flex justify-content-between flex-lg-wrap">
                                                                     <p className="text-dark fs-5 fw-bold mb-0">${product.price}</p>
-                                                                    <button className="btn border border-secondary rounded-pill px-3 text-primary" onClick={() => handleCartData(product.id)}><i className="fa fa-shopping-bag me-2 text-primary" /> Add to cart</button>
+                                                                    {(product.cart_qty > 0) ? (
+
+                                                                        < div className="input-group quantity mt-4" style={{ width: 100 }}>
+                                                                            <div className="input-group-btn">
+                                                                                <button className="btn btn-sm btn-minus rounded-circle bg-light border" onClick={() => minusQty(product.id, product.cart_qty, product.
+                                                                                    cart_id)}>
+                                                                                    <i className="fa fa-minus" />
+                                                                                </button>
+                                                                            </div>
+                                                                            <input type="text" className="form-control form-control-sm text-center border-0" value={product.cart_qty} />
+                                                                            <div className="input-group-btn">
+                                                                                <button className="btn btn-sm btn-plus rounded-circle bg-light border" onClick={() => plusQty(product.id, product.cart_qty, product.
+                                                                                    cart_id)}>
+                                                                                    <i className="fa fa-plus" />
+                                                                                </button>
+                                                                            </div>
+                                                                        </div>)
+                                                                        : (<button className="btn border border-secondary rounded-pill px-3 text-primary" onClick={() => handleCartData(product.id)}><i className="fa fa-shopping-bag me-2 text-primary" /> Add to cart</button>)
+                                                                    }
+
                                                                 </div>
                                                             </div>
                                                         </div>

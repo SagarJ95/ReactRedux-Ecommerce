@@ -1,5 +1,6 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import axios from "axios";
+import { productInfo } from '../shopCart/ProductSlice'
 
 //fetch Product qty
 export const fetchCartInfo = createAsyncThunk("cart/fetchCartList", async () => {
@@ -16,11 +17,11 @@ export const fetchCartInfo = createAsyncThunk("cart/fetchCartList", async () => 
 })
 
 // Add item to cart
-export const addItem = createAsyncThunk("addcart/addItem", async (productId, thunkAPI) => {
+export const addItem = createAsyncThunk("addcart/addItem", async (arg, thunkAPI) => {
     const token = localStorage.getItem("access_token");
     const bodyPart = {
         id: 0,
-        product_id: productId,
+        product_id: arg.productId,
         qty: 1,
     };
     const response = await axios.post("https://keepinbasket.ortdemo.com/add_update_cart", bodyPart, {
@@ -31,7 +32,12 @@ export const addItem = createAsyncThunk("addcart/addItem", async (productId, thu
     });
 
     if (response.data.status === true) {
-        thunkAPI.dispatch(fetchCartInfo()); // refresh cart
+        thunkAPI.dispatch(fetchCartInfo());
+        thunkAPI.dispatch(productInfo({
+            categoryId: arg.categoryId,
+            page: arg.page,
+            sort_by_price: arg.sort_by_price
+        })) // refresh cart
     }
     return response.data;
 });
@@ -53,16 +59,21 @@ export const updateItem = createAsyncThunk("addcart/updateItem", async (arg, thu
     });
 
     if (response.data.status === true) {
-        thunkAPI.dispatch(fetchCartInfo()); // refresh cart
+        thunkAPI.dispatch(fetchCartInfo());
+        thunkAPI.dispatch(productInfo({
+            categoryId: arg.categoryId,
+            page: arg.page,
+            sort_by_price: arg.sort_by_price
+        }))// refresh cart
     }
     return response.data;
 });
 
 // Remove item from cart
-export const removeItem = createAsyncThunk("addcart/removeItem", async (cart_id, thunkAPI) => {
+export const removeItem = createAsyncThunk("addcart/removeItem", async (arg, thunkAPI) => {
     const token = localStorage.getItem("access_token");
     const bodyPart = {
-        cart_id,
+        cart_id: arg.cart_id
     };
     const response = await axios.post("https://keepinbasket.ortdemo.com/delete_product_cart", bodyPart, {
         headers: {
@@ -72,7 +83,12 @@ export const removeItem = createAsyncThunk("addcart/removeItem", async (cart_id,
     });
 
     if (response.data.status === true) {
-        thunkAPI.dispatch(fetchCartInfo()); // refresh cart
+        thunkAPI.dispatch(fetchCartInfo());
+        thunkAPI.dispatch(productInfo({
+            categoryId: arg.categoryId,
+            page: arg.page,
+            sort_by_price: arg.sort_by_price
+        })) // refresh cart
     }
 
     return response.data;
